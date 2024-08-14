@@ -120,7 +120,7 @@ contract Voting {
         emit TopicClosed(topics[_topicId].requester, topics[_topicId].topicId, topics[_topicId].votingSubject, false, topics[_topicId].denialRemark, topics[_topicId].endDate);
     }
 
-    function createVoting(uint256 _topicId, uint256 _votingDeadline) external onlyCentralBank {
+    function createVoting(uint256 _topicId, uint256 _votingDeadline) external onlyCentralBank{
         Topic memory topic = topics[_topicId];
         require(topic.creationDate > 0, "Nonexistent topic");
         require(topic.status == TopicStatus.IDLE, "Only IDLE topics are eligible");
@@ -146,7 +146,7 @@ contract Voting {
         require(block.timestamp < votingData.votingDeadline, "Voting deadline has been reached");
 
         Vote[] memory votes = votingData.votes;
-        for (uint16 i=0; i>votes.length; i++){
+        for (uint16 i=0; i<votes.length; i++){
             require(votes[i].voter != msg.sender, "The participant has already voted");
         }
 
@@ -199,7 +199,17 @@ contract Voting {
         return finalResult;
     }
 
-    function getNumberOfVotes(uint256 _votingId) public view onlyRegisteredBanks returns (uint256) {
+    function getNumberOfVotes(uint256 _votingId) external view onlyRegisteredBanks returns (uint256) {
         return votings[_votingId].votes.length;
+    }
+
+    function getVote(uint256 _votingId, uint256 _voteIndex) external view onlyRegisteredBanks returns (Vote memory fetchedVote) {
+        VotingData memory votingData = votings[_votingId];
+        require(_voteIndex < votingData.votes.length, "Vote index out of bounds");
+
+        fetchedVote = votingData.votes[_voteIndex];
+        require(msg.sender == fetchedVote.voter, "Only the voter is allowed");
+
+        return fetchedVote;
     }
 }
