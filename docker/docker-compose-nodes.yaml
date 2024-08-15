@@ -1,0 +1,60 @@
+version: '3'
+services:
+  besu-validator:
+    user: root
+    container_name: besu-validator
+    volumes:
+      - ../node/besu-1/data:/opt/besu/data
+      - ../nodes/besu-validator/data/keys:/opt/besu/data/keys
+      - ../genesis:/opt/besu/genesis
+    image: hyperledger/besu:latest
+    entrypoint:
+      - /bin/bash
+      - -c
+      - besu --data-path=data --genesis-file=genesis/genesis.json --bootnodes=enode://024fd84bbde90c98822c2850ef8fde4461f5b94942d90aaf5e917b98ed2180b95996b1af2dd2b6c35a31a522c723d08f05076736a2fa6850b4d3995792fecffe@172.20.0.2:30303 --p2p-port=30304 --rpc-http-enabled --rpc-http-api=ETH,NET,QBFT --host-allowlist="*" --rpc-http-cors-origins="all" --rpc-http-port=8546
+    ports:
+      - "8546:8546"
+      - "30304:30304"
+    networks:
+      besu_network:
+    restart: always
+  besu-fn-1:
+    user: root
+    container_name: besu-fn-1
+    volumes:
+      - ../node/besu-fn-1/data:/opt/besu/data
+      - ../nodes/besu-fn-1/data/keys:/opt/besu/data/keys
+      - ../genesis:/opt/besu/genesis
+    image: hyperledger/besu:latest
+    entrypoint:
+      - /bin/bash
+      - -c
+      - besu --data-path=data --genesis-file=genesis/genesis.json --bootnodes=enode://024fd84bbde90c98822c2850ef8fde4461f5b94942d90aaf5e917b98ed2180b95996b1af2dd2b6c35a31a522c723d08f05076736a2fa6850b4d3995792fecffe@172.20.0.2:30303 --p2p-port=30305 --rpc-http-enabled --rpc-http-api=ETH,NET,QBFT --host-allowlist="*" --rpc-http-cors-origins="all" --rpc-http-port=8547
+    ports:
+      - "8547:8547"
+      - "30305:30305"
+    networks:
+      besu_network:
+    restart: always
+  besu-fn-2:
+    user: root
+    container_name: besu-fn-2
+    volumes:
+      - ../node/besu-fn-2/data:/opt/besu/data
+      - ../nodes/besu-fn-2/data/keys:/opt/besu/data/keys
+      - ../genesis:/opt/besu/genesis
+    image: hyperledger/besu:latest
+    entrypoint:
+      - /bin/bash
+      - -c
+      - besu --data-path=data --genesis-file=genesis/genesis.json --bootnodes=enode://024fd84bbde90c98822c2850ef8fde4461f5b94942d90aaf5e917b98ed2180b95996b1af2dd2b6c35a31a522c723d08f05076736a2fa6850b4d3995792fecffe@172.20.0.2:30303 --p2p-port=30306 --rpc-http-enabled --rpc-http-api=ETH,NET,QBFT --host-allowlist="*" --rpc-http-cors-origins="all" --rpc-http-port=8548
+    ports:
+      - "8548:8548"
+      - "30306:30306"
+    networks:
+      besu_network:
+    restart: always
+
+networks:
+  besu_network:
+    external: true
