@@ -21,7 +21,7 @@ contract Voting {
     struct Topic {
         uint256 topicId;
         address requester;
-        VotingSubject votingSubject;
+        Subject subject;
         string objective;
         string description;
         uint256 proposedValue;
@@ -32,7 +32,7 @@ contract Voting {
         uint256 votingId;
     }
 
-    enum VotingSubject {
+    enum Subject {
         LiquitidyInjection,
         InterestRate
     }    
@@ -60,8 +60,8 @@ contract Voting {
         uint8 finalResult;
     }
 
-    event TopicCreated(address indexed requester, uint256 indexed topicId, VotingSubject votingSubject, uint256 topicCreationTimestamp);
-    event TopicClosed(address indexed requester, uint256 indexed topicId, VotingSubject votingSubject, bool isApproved, string denialRemark, uint256 topicClosureTimestamp);
+    event TopicCreated(address indexed requester, uint256 indexed topicId, Subject subject, uint256 topicCreationTimestamp);
+    event TopicClosed(address indexed requester, uint256 indexed topicId, Subject subject, bool isApproved, string denialRemark, uint256 topicClosureTimestamp);
     event VotingCreated(address indexed requester, uint256 indexed votingId, uint256 indexed topicId, uint256 votingCreationTimestamp);
     event VotingClosed(uint256 indexed votingId, uint8 finalResult, uint256 votingClosureTimestamp);
     event VoteRegistered(uint256 indexed votingId, uint256 voteIndex, uint256 voteTimestamp);
@@ -73,6 +73,16 @@ contract Voting {
 
     modifier onlyRegisteredBanks() {
         require(msg.sender == centralBank || registeredBanks[msg.sender], "Only registered banks");
+        _;
+    }
+
+    modifier onlyExistingVotingId(uint256 _votingId){
+        require(_votingId <= votingId, "Inexistent votingId");
+        _;
+    }
+
+    modifier onlyExistingTopicId(uint256 _topicId){
+        require(_topicId <= topicId, "Inexistent topicId");
         _;
     }
 
@@ -89,11 +99,11 @@ contract Voting {
         registeredBanks[_bank] = false;
     }
 
-    function createTopic(VotingSubject _votingSubject, string memory _objective, string calldata _description, uint256 _proposedValue) external onlyRegisteredBanks {
+    function createTopic(Subject _subject, string memory _objective, string calldata _description, uint256 _proposedValue) external onlyRegisteredBanks {
         Topic memory topic = Topic({
             topicId: ++topicId,
             requester: msg.sender,
-            votingSubject: _votingSubject,
+            subject: _subject,
             objective: _objective,
             description: _description,
             proposedValue: _proposedValue,
@@ -105,10 +115,10 @@ contract Voting {
         });
 
         topics[topicId] = topic;
-        emit TopicCreated(topic.requester, topicId, topic.votingSubject, topic.creationDate);
+        emit TopicCreated(topic.requester, topicId, topic.subject, topic.creationDate);
     }
 
-    function denyTopic(uint256 _topicId, string calldata _denialRemark) external onlyCentralBank {
+    function denyTopic(uint256 _topicId, string calldata _denialRemark) external onlyCentralBank onlyExistingTopicId(_topicId) {
         Topic memory topic = topics[_topicId];
         require(topic.creationDate > 0, "Nonexistent topic");
         require(topic.status == TopicStatus.IDLE, "Only IDLE topics are eligible");
@@ -117,10 +127,10 @@ contract Voting {
         topic.status = TopicStatus.DENIED;
         topic.endDate = block.timestamp;
         topics[_topicId] = topic;
-        emit TopicClosed(topics[_topicId].requester, topics[_topicId].topicId, topics[_topicId].votingSubject, false, topics[_topicId].denialRemark, topics[_topicId].endDate);
+        emit TopicClosed(topics[_topicId].requester, topics[_topicId].topicId, topics[_topicId].subject, false, topics[_topicId].denialRemark, topics[_topicId].endDate);
     }
 
-    function createVoting(uint256 _topicId, uint256 _votingDeadline) external onlyCentralBank{
+    function createVoting(uint256 _topicId, uint256 _votingDeadline) external onlyCentralBank onlyExistingTopicId(_topicId){
         Topic memory topic = topics[_topicId];
         require(topic.creationDate > 0, "Nonexistent topic");
         require(topic.status == TopicStatus.IDLE, "Only IDLE topics are eligible");
@@ -135,11 +145,11 @@ contract Voting {
         topic.endDate = block.timestamp;
 
         emit VotingCreated(topic.requester, topic.topicId, votingId, block.timestamp);
-        emit TopicClosed(topic.requester, topic.topicId, topic.votingSubject, true, topic.denialRemark, topic.endDate);
+        emit TopicClosed(topic.requester, topic.topicId, topic.subject, true, topic.denialRemark, topic.endDate);
     }
 
     //TODO: CV
-    function vote(uint256 _votingId, VoteDecision _voteDecision, string calldata _voteDescription, uint256 _opinativeValueSuggestion) external onlyRegisteredBanks {
+    function vote(uint256 _votingId, VoteDecision _voteDecision, string calldata _voteDescription, uint256 _opinativeValueSuggestion) external onlyRegisteredBanks onlyExistingVotingId(_votingId) {
         require(_voteDecision != VoteDecision.EMPTY, "Vote cannot be EMPTY");
 
         VotingData memory votingData = votings[_votingId];
@@ -165,7 +175,7 @@ contract Voting {
         emit VoteRegistered(votingId, newLastIndex, block.timestamp);
     }
 
-    function closeVoting(uint256 _votingId) external onlyCentralBank returns(uint8 finalResult){
+    function closeVoting(uint256 _votingId) external onlyCentralBank onlyExistingVotingId(_votingId) returns(uint8 finalResult){
         VotingData storage votingData = votings[_votingId];
         require(block.timestamp > votingData.votingDeadline, "Voting deadline must have been reached for closure");
         
@@ -199,11 +209,11 @@ contract Voting {
         return finalResult;
     }
 
-    function getNumberOfVotes(uint256 _votingId) external view onlyRegisteredBanks returns (uint256) {
+    function getNumberOfVotes(uint256 _votingId) external view onlyRegisteredBanks onlyExistingVotingId(_votingId) returns (uint256) {
         return votings[_votingId].votes.length;
     }
 
-    function getVote(uint256 _votingId, uint256 _voteIndex) external view onlyRegisteredBanks returns (Vote memory fetchedVote) {
+    function getVote(uint256 _votingId, uint256 _voteIndex) external view onlyRegisteredBanks onlyExistingVotingId(_votingId) returns (Vote memory fetchedVote) {
         VotingData memory votingData = votings[_votingId];
         require(_voteIndex < votingData.votes.length, "Vote index out of bounds");
 

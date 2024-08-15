@@ -1,10 +1,10 @@
 # Project Title
 
-**Version 1.0.0**: Voting System DAO for Central and Commercial banks' interests based on [DREX pilot](https://github.com/bacen/pilotord-kit-onboarding)
-**Version 2.0.0**: DID-VC for voting. Probably [Indy Besu](https://github.com/hyperledger/indy-besu)
+**Version 1.0.0**: Permissioned Voting DAO for Central and Commercial banks' liquidity injection and common interests based on [DREX pilot](https://github.com/bacen/pilotord-kit-onboarding)
+**Version 2.0.0**: DID-VC SSI implementation for DAO participation. Probably using [Indy Besu](https://github.com/hyperledger/indy-besu)
 
 ## Future Considerations
-Voting Factory: it is a consideration to modularize voting contracts instances by using factory-like pattern in function of each voting subject specification.
+- Voting contracts modularity: it might be a consideration to modularize voting contracts instances by using factory-like pattern according to each voting subject specification and complexity grownth
 
 ## Installation
 Before cloning ensure the following dependencies are installed:
