@@ -1,18 +1,25 @@
-# Project Title
+#     DREX-Liquidity-DAO<br> 
 
 **Version 1.0.0**: Permissioned Voting DAO for Central and Commercial banks' liquidity injection and common interests based on [DREX pilot](https://github.com/bacen/pilotord-kit-onboarding)
-**Version 2.0.0**: DID-VC SSI implementation for DAO participation. Probably using [Indy Besu](https://github.com/hyperledger/indy-besu)
+**Version 2.0.0**: ZKP for unilateral interest transactions using [Zokrates](https://zokrates.github.io/)
+**Version 3.0.0**: DID-VC for SSI DAO participation using [Indy Besu](https://github.com/hyperledger/indy-besu)
 
 ## Future Considerations
-- Voting contracts modularity: it might be a consideration to modularize voting contracts instances by using factory-like pattern according to each voting subject specification and complexity grownth
+- Voting modularity: it is a consideration to modularize voting contracts instances by using factory-like pattern according to each voting subject specification and complexity grownth. This can be done by using updateProxy() at VotingProxy.sol.
 
-## Installation
-Before cloning ensure the following dependencies are installed:
-
+## Dependencies
+Before running the script ensure following dependencies are installed and active:
 - [JDK 21 or later](https://jdk.java.net/22/)
 - [Besu](https://github.com/hyperledger/besu/releases)
 - [Docker](https://docs.docker.com/get-docker/)
 - [Docker Compose](https://docs.docker.com/compose/install/)
 
-Feel free to clone and from project directory run ```./script.sh```. 
-The script will handle contracts and a 4-node QBFT besu network deployment, being 1 validator and 3 fullnodes [DREX-like](https://github.com/bacen/pilotord-kit-onboarding/blob/main/arquitetura.md).
+## Installation
+1. After cloning create a .env file at root, paste the following and set your wallet mnemonic
+>NODE_RPC=http://127.0.0.1:8545
+>CHAIN_ID=1337
+>MNEMONIC=<your-12-word-seed-phrase>
+
+2. Still at root run ```./qbft-drex.sh```
+
+The script will deploy the contracts and a 4-node QBFT besu network deploymentgg [DREX-like](https://github.com/bacen/pilotord-kit-onboarding/blob/main/arquitetura.md). 
