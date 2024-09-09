@@ -1,8 +1,8 @@
-#     DREX-Liquidity-DAO<br> 
+#     DREX-Liquidity-DAO
 
-**Version 1.0.0**: Permissioned Voting DAO for Central and Commercial banks' liquidity injection and common interests based on [DREX pilot](https://github.com/bacen/pilotord-kit-onboarding)
-**Version 2.0.0**: ZKP for unilateral interest transactions using [Zokrates](https://zokrates.github.io/)
-**Version 3.0.0**: DID-VC for SSI DAO participation using [Indy Besu](https://github.com/hyperledger/indy-besu)
+**Version 1.0.0**: Permissioned Voting DAO for Central and Commercial banks' liquidity injection and common interests based on [DREX pilot](https://github.com/bacen/pilotord-kit-onboarding) <br />
+**Version 2.0.0**: ZKP for unilateral interest transactions using [Zokrates](https://zokrates.github.io/) <br />
+**Version 3.0.0**: DID-VC for SSI DAO participation using [Indy Besu](https://github.com/hyperledger/indy-besu) <br />
 
 ## Future Considerations
 - Voting modularity: it is a consideration to modularize voting contracts instances by using factory-like pattern according to each voting subject specification and complexity grownth. This can be done by using updateProxy() at VotingProxy.sol.
