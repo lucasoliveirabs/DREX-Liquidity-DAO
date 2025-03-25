@@ -3,11 +3,11 @@ pragma solidity ^0.8.24;
 
 contract Voting {
 
-    address public centralBank;
-    mapping(address => bool) public registeredBanks;
+    address public immutable centralBank;
+    mapping(address => bool) private registeredBanks;
 
     uint256 public topicId;
-    mapping (uint256 => Topic) public topics;
+    mapping (uint256 => Topic) private topics;
     
     uint256 public votingId;
     mapping (uint256 => VotingData) public votings;
@@ -67,12 +67,12 @@ contract Voting {
     event VoteRegistered(uint256 indexed votingId, uint256 voteIndex, uint256 voteTimestamp);
 
     modifier onlyCentralBank() {
-        require(msg.sender == centralBank, "Only Central Bank");
+        require(tx.origin == centralBank, "Only Central Bank");
         _;
     }
 
     modifier onlyRegisteredBanks() {
-        require(msg.sender == centralBank || registeredBanks[msg.sender], "Only registered banks");
+        require(registeredBanks[tx.origin], "Only registered banks");
         _;
     }
 
@@ -87,7 +87,8 @@ contract Voting {
     }
 
     constructor() {
-        centralBank = msg.sender;
+        centralBank = tx.origin;
+        registeredBanks[tx.origin] = true;
     }
 
     //TODO: CV
@@ -99,10 +100,14 @@ contract Voting {
         registeredBanks[_bank] = false;
     }
 
+    function isBankRegistered(address _bankAddress) external view onlyRegisteredBanks returns(bool isRegistered) {
+        return registeredBanks[_bankAddress];
+    }
+
     function createTopic(Subject _subject, string memory _objective, string calldata _description, uint256 _proposedValue) external onlyRegisteredBanks {
         Topic memory topic = Topic({
             topicId: ++topicId,
-            requester: msg.sender,
+            requester: tx.origin,
             subject: _subject,
             objective: _objective,
             description: _description,
@@ -157,11 +162,11 @@ contract Voting {
 
         Vote[] memory votes = votingData.votes;
         for (uint16 i=0; i<votes.length; i++){
-            require(votes[i].voter != msg.sender, "The participant has already voted");
+            require(votes[i].voter != tx.origin, "The participant has already voted");
         }
 
         Vote memory newVote = Vote({
-            voter: msg.sender,
+            voter: tx.origin,
             voteDecision: _voteDecision,
             voteDescription: _voteDescription,
             opinativeValueSuggestion: _opinativeValueSuggestion,
@@ -213,12 +218,18 @@ contract Voting {
         return votings[_votingId].votes.length;
     }
 
+    function getTopic(uint256 _topicId) external view onlyRegisteredBanks onlyExistingTopicId(_topicId) returns(Topic memory fetchedTopic) {
+        fetchedTopic = topics[_topicId];
+        require(fetchedTopic.requester == tx.origin, 'Only the requester is allowed');
+        return topics[_topicId];
+    }
+
     function getVote(uint256 _votingId, uint256 _voteIndex) external view onlyRegisteredBanks onlyExistingVotingId(_votingId) returns (Vote memory fetchedVote) {
         VotingData memory votingData = votings[_votingId];
         require(_voteIndex < votingData.votes.length, "Vote index out of bounds");
 
         fetchedVote = votingData.votes[_voteIndex];
-        require(msg.sender == fetchedVote.voter, "Only the voter is allowed");
+        require(tx.origin == fetchedVote.voter, "Only the voter is allowed");
 
         return fetchedVote;
     }
